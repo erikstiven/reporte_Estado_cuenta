@@ -1,0 +1,156 @@
+create procedure "informix".sp_estado_cuenta_prove_web( in_empr integer,  in_prove integer, in_fecha_ini date, in_fecha_fin date , in_op integer , in_user integer )
+
+
+
+returning  date as fecha_emision,  varchar(100) as tran_cod_tran,  varchar(255) as comprobante,  varchar(100) as factura,  date as fecha_vencimiento,
+
+varchar(255) as detalle, decimal(18,3) as debito, decimal(18,3) as credito,  varchar(255) as prove, varchar(100) as ruc, integer as clpv_cod_clpv, varchar(20) as cod_grpv;
+
+
+
+define fec_emis date;
+
+define cod_tran varchar(100);
+
+define comprob varchar(255);
+
+define num_fac varchar(100);
+
+define fec_vence date;
+
+define detalle varchar(255);
+
+define deb decimal(18,3);
+
+define cre decimal(18,3);
+
+define proveedor  varchar(255);
+
+define ruc varchar(100);
+
+define cod_clpv integer;
+
+define msn varchar(10);
+
+define cod_grpv varchar(20);
+
+
+
+-- PROVEEDOR  SELECCCIONADO
+
+if( in_op==1 ) then
+
+
+
+FOREACH 
+
+
+
+	SELECT   saedmcp.dcmp_fec_emis,    saedmcp.dmcp_cod_tran,    saedmcp.dcmp_num_comp,   
+
+		saedmcp.dmcp_num_fac,    saedmcp.dmcp_fec_ven,      saedmcp.dmcp_det_dcmp,   
+
+		saedmcp.dcmp_deb_ml,      saedmcp.dcmp_cre_ml,        saeclpv.clpv_nom_clpv,    
+
+		saeclpv.clpv_ruc_clpv,          saeclpv.clpv_cod_clpv,	    saeclpv.grpv_cod_grpv
+
+	into  fec_emis,  	cod_tran,  		comprob ,  
+
+	        num_fac,   	fec_vence, 	detalle ,  
+
+	        deb,   	cre ,		proveedor ,
+
+	        ruc , 		cod_clpv,		cod_grpv 
+
+	FROM saeclpv  ,  saedmcp   WHERE
+
+	( saedmcp.clpv_cod_clpv = saeclpv.clpv_cod_clpv ) and  
+
+	( saeclpv.clpv_cod_empr = saedmcp.dmcp_cod_empr ) and     
+
+	( saedmcp.dmcp_cod_empr = in_empr ) AND  
+
+	( saedmcp.dcmp_fec_emis between  in_fecha_ini  and  in_fecha_fin  ) AND  
+
+	( saeclpv.clpv_clopv_clpv = 'PV'  )  AND
+
+	  saeclpv.clpv_cod_clpv = in_prove  
+
+	order by saedmcp.dmcp_num_fac
+
+
+
+	return fec_emis,  	cod_tran,  		comprob ,  
+
+	        num_fac,   	fec_vence, 	detalle ,  
+
+	        deb,   	cre ,		proveedor ,
+
+	        ruc , 		cod_clpv,		cod_grpv  WITH RESUME;
+
+end foreach;
+
+end if;
+
+
+
+
+
+-- TODOS LOS PROVEEDORES
+
+if( in_op==2 ) then
+
+
+
+FOREACH 
+
+
+
+	SELECT   saedmcp.dcmp_fec_emis,    saedmcp.dmcp_cod_tran,    saedmcp.dcmp_num_comp,   
+
+		saedmcp.dmcp_num_fac,    saedmcp.dmcp_fec_ven,      saedmcp.dmcp_det_dcmp,   
+
+		saedmcp.dcmp_deb_ml,      saedmcp.dcmp_cre_ml,        saeclpv.clpv_nom_clpv,    
+
+		saeclpv.clpv_ruc_clpv,          saeclpv.clpv_cod_clpv,	    saeclpv.grpv_cod_grpv
+
+	into  fec_emis,  	cod_tran,  		comprob ,  
+
+	        num_fac,   	fec_vence, 	detalle ,  
+
+	        deb,   	cre ,		proveedor ,
+
+	        ruc , 		cod_clpv,		cod_grpv 
+
+	FROM saeclpv  ,  saedmcp   WHERE
+
+	( saedmcp.clpv_cod_clpv = saeclpv.clpv_cod_clpv ) and  
+
+	( saeclpv.clpv_cod_empr = saedmcp.dmcp_cod_empr ) and     
+
+	( saedmcp.dmcp_cod_empr = in_empr ) AND  
+
+	( saedmcp.dcmp_fec_emis between  in_fecha_ini  and  in_fecha_fin  ) AND  
+
+	( saeclpv.clpv_clopv_clpv = 'PV'  )   
+
+	order by saeclpv.clpv_cod_clpv
+
+	return fec_emis,  	cod_tran,  		comprob ,  
+
+	        num_fac,   	fec_vence, 	detalle ,  
+
+	        deb,   	cre ,		proveedor ,
+
+	        ruc , 		cod_clpv,		cod_grpv   WITH RESUME;
+
+
+
+end foreach;
+
+end if;
+
+
+
+end procedure
+                                                                                        
