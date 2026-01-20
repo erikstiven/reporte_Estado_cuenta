@@ -570,6 +570,60 @@ xajax.callback.global.onComplete = hide_load;
                         orientation: 'landscape',
                         pageSize: 'A3',
                         text: '<div class="contenedor_pdf"><i class="fa fa-file-pdf-o pdf"></i><label ></label></div>',
+                        customize: function(doc) {
+                            var proveedorId = '';
+                            var proveedorInput = document.getElementById('clpv_cod_clpv');
+
+                            if (proveedorInput) {
+                                proveedorId = proveedorInput.value.trim();
+                            }
+
+                            if (!proveedorId) {
+                                return;
+                            }
+
+                            var tableContent = null;
+                            for (var i = 0; i < doc.content.length; i++) {
+                                if (doc.content[i].table) {
+                                    tableContent = doc.content[i];
+                                    break;
+                                }
+                            }
+
+                            if (!tableContent || !tableContent.table || !tableContent.table.body) {
+                                return;
+                            }
+
+                            var body = tableContent.table.body;
+                            if (body.length < 2) {
+                                return;
+                            }
+
+                            var firstRow = body[1];
+                            var getText = function(cell) {
+                                if (cell && typeof cell === 'object' && cell.text !== undefined) {
+                                    return cell.text;
+                                }
+                                return cell || '';
+                            };
+
+                            var sucursal = getText(firstRow[1]);
+                            var ruc = getText(firstRow[2]);
+                            var nombre = getText(firstRow[3]);
+                            var telefono = getText(firstRow[4]);
+
+                            if (!sucursal || !sucursal.includes('Sucursal:')) {
+                                return;
+                            }
+
+                            doc.content.splice(1, 0, {
+                                text: [sucursal, ruc, nombre, telefono].filter(Boolean).join('\n'),
+                                margin: [0, 0, 0, 10],
+                                fontSize: 10
+                            });
+
+                            body.splice(1, 1);
+                        },
                         exportOptions: {
                             format: {
                                 body: function(data, row, column, node) {
